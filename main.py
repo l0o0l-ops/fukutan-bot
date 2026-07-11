@@ -50,7 +50,7 @@ def update_student_status(knowledge: int, thinking: int, application: int):
 # ==========================================
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request,name="index.html")
 
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):
