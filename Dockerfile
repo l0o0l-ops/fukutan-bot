@@ -1,5 +1,5 @@
 # 1. ベースとなるPythonの環境を決定（軽量なslim版を使用）
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # 2. コンテナ内の作業ディレクトリを「/app」に設定
 WORKDIR /app
