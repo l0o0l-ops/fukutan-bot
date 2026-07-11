@@ -16,14 +16,9 @@ load_dotenv()
 
 FIREBASE_KEY_PATH = os.environ.get("FIREBASE_KEY_PATH")
 
-if  not FIREBASE_KEY_PATH:
-    st.error(".env ファイルに GEMINI_API_KEY または FIREBASE_KEY_PATH が定義されていません。")
-    st.stop()
-
-# Firebase Admin SDK 初期化
 if not firebase_admin._apps:
-    cred = credentials.Certificate(FIREBASE_KEY_PATH)
-    firebase_admin.initialize_app(cred)
+
+    firebase_admin.initialize_app()
 
 db = firestore.client()
 
