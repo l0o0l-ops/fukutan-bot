@@ -24,7 +24,7 @@ db = firestore.client()
 
 # 最新 Gemini Client 初期化
 ai_client = genai.Client(
-    http_options={'api_version': 'v1'}
+    vertexai=True
 )
 
 # ==========================================
@@ -115,7 +115,7 @@ def generate_growth_report_and_carte(c_id: str, s_id: str, m_id: str, chat_histo
     """
     
     response = ai_client.models.generate_content(
-        model='gemini-2.0-flash',
+        model='gemini-2.5-flash',
         contents=prompt
     )
     
@@ -352,7 +352,7 @@ with tab_student:
             with chat_container:
                 with st.spinner("AI副担任が評価＆思考中..."):
                     response = ai_client.models.generate_content(
-                        model='gemini-2.0-flash',
+                        model='gemini-2.5-flash',
                         contents=user_input,
                         config=types.GenerateContentConfig(
                             system_instruction=system_instruction,
@@ -377,7 +377,7 @@ with tab_student:
                                     st.balloons() # 合格の華やかな演出！
                                 
                                 response = ai_client.models.generate_content(
-                                    model='gemini-2.0-flash',
+                                    model='gemini-2.5-flash',
                                     contents=[
                                         types.Content(role="user", parts=[types.Part.from_text(text=user_input)]),
                                         types.Content(role="model", parts=[types.Part.from_function_call(function_call=function_call)]),
