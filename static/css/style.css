@@ -1,0 +1,162 @@
+/* 変数定義などは同じなので省略せずそのまま使います */
+:root {
+    --bg-ink: #0b0c10;
+    --panel-ink: #14161c;
+    --border-ink: #2a2d36;
+    --lamp-amber: #f59e0b;
+    --lamp-glow: rgba(245, 158, 11, 0.15);
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg-ink);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    /* 💡 バグ修正3: 画面ピッタリに収めるための記述 */
+    height: 100vh;
+    overflow: hidden; 
+}
+
+.app-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+header {
+    border-bottom: 1px solid var(--border-ink);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    flex-shrink: 0; /* ヘッダーは潰さない */
+}
+
+header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.8rem;
+    margin: 0;
+    letter-spacing: 0.05em;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.main-layout {
+    display: flex;
+    gap: 24px;
+    flex: 1; /* 残りの高さをすべて使う */
+    min-height: 0; /* 💡 超重要: Flexbox内のスクロールを有効にするおまじない */
+}
+
+.chat-section, .status-section {
+    background-color: var(--panel-ink);
+    border: 1px solid var(--border-ink);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-section { flex: 6; min-width: 0; }
+.status-section { flex: 4; min-width: 0; }
+
+.section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-ink);
+    flex-shrink: 0;
+}
+
+.section-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.section-header p {
+    margin: 4px 0 0 0;
+    font-size: 0.85rem;
+    color: var(--lamp-amber);
+}
+
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto; /* ここだけスクロールさせる */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.chat-bubble {
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.chat-bubble.assistant {
+    align-self: flex-start;
+    background-color: var(--lamp-glow);
+    border-left: 3px solid var(--lamp-amber);
+    color: #fde68a;
+}
+
+.chat-bubble.user {
+    align-self: flex-end;
+    background-color: #272a35;
+    color: var(--text-main);
+}
+
+.input-area {
+    padding: 16px;
+    background-color: var(--bg-ink);
+    border-top: 1px solid var(--border-ink);
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.input-area input {
+    flex: 1;
+    background-color: var(--panel-ink);
+    border: 1px solid var(--border-ink);
+    color: var(--text-main);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.input-area input:focus { border-color: var(--lamp-amber); }
+
+.input-area button {
+    background-color: var(--lamp-amber);
+    color: var(--bg-ink);
+    border: none;
+    padding: 0 24px;
+    border-radius: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.input-area button:hover { opacity: 0.9; }
+
+.chart-container {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+}
