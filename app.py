@@ -2,7 +2,7 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
 from google import genai
-from google.genai import genai
+from google import genai
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
