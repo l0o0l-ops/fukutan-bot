@@ -1,3 +1,6 @@
+const urlParams = new URLSearchParams(window.location.search);
+const currentClassId = urlParams.get('class_id') || 'class_001';
+
 document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 1. Chart.js (レーダーチャート) の初期化

@@ -50,7 +50,23 @@ def update_student_status(knowledge: int, thinking: int, application: int):
 # ==========================================
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
-    return templates.TemplateResponse(request=request,name="index.html")
+    """🏠 授業選択ポータル (Landing Page)"""
+    return templates.TemplateResponse(request=request, name="index.html")
+
+@app.get("/student", response_class=HTMLResponse)
+async def get_student(request: Request):
+    """👤 学生用コクピット (旧 index.html)"""
+    return templates.TemplateResponse(request=request, name="student.html")
+
+@app.get("/professor", response_class=HTMLResponse)
+async def get_professor(request: Request):
+    """👨‍🏫 教授用ダッシュボード"""
+    return templates.TemplateResponse(request=request, name="professor.html")
+
+@app.get("/settings", response_class=HTMLResponse)
+async def get_settings(request: Request):
+    """⚙️ マスタ管理画面"""
+    return templates.TemplateResponse(request=request, name="settings.html")
 
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):

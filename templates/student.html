@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI副担任：フクタン</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-wrapper">
+        <header>
+            <h1>FUKUTAN <span class="subtitle">| AI Oral Examination</span></h1>
+        </header>
+
+        <main class="main-layout">
+            <section class="chat-section">
+                <div class="section-header">
+                    <h2>Dialogue Log</h2>
+                    <p>第1章：コンテナ技術の基礎概念</p>
+                </div>
+                <div class="chat-box" id="chat-box">
+                    <div class="chat-bubble assistant">
+                        こんにちは。フクタンです。今日の講義内容について、君自身の言葉で説明してもらえるかな？
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="chat-input" placeholder="論理を記述してください..." autocomplete="off">
+                    <button id="send-btn">Send</button>
+                </div>
+            </section>
+
+            <section class="status-section">
+                <div class="section-header">
+                    <h2>Real-time Assessment</h2>
+                    <p>能力査定ステータス</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
