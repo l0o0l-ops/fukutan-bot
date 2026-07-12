@@ -10,6 +10,7 @@ import io
 import json
 import os
 import uuid
+from pathlib import Path
 from typing import Optional
 
 import firebase_admin
@@ -51,7 +52,10 @@ ai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 app = FastAPI(title="Intelligent Syllabus")
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"))
+
+# テンプレートディレクトリの絶対パスを設定
+template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates")
+templates = Jinja2Templates(directory=template_dir)
 
 DEFAULT_CRITERIA = {"knowledge_level": 4, "thinking_level": 4, "application_level": 3}
 
@@ -257,52 +261,25 @@ def generate_module_from_pdf(pdf_text: str, module_number: int) -> Optional[dict
 # ==========================================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse(
-        request=request, 
-        name="index.html"
-    )
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/class/{class_id}", response_class=HTMLResponse)
 def class_select_page(request: Request, class_id: str):
     get_class_or_404(class_id)  # 存在確認
-    return templates.TemplateResponse(
-        request=request,
-        name="class_select.html",
-        context={"class_id": class_id}
-    )
+    return templates.TemplateResponse("class_select.html", {"request": request, "class_id": class_id})
 
 
-@app.get("/class/{class_id}/select-student", response_class=HTMLResponse)
-def select_student_page(request: Request, class_id: str):
-    # クラス情報を取得してテンプレートに渡す
-    class_data = get_class_or_404(class_id)
-    return templates.TemplateResponse(
-        request=request,
-        name="select_student.html",
-        context={"class_id": class_id, "roster": class_data.get("roster", [])}
-    )
-
-@app.get("/class/{class_id}/student/{student_id}", response_class=HTMLResponse)
-def student_page(request: Request, class_id: str, student_id: str):
-    # 1. クラスが存在するか確認
+@app.get("/class/{class_id}/student", response_class=HTMLResponse)
+def student_page(request: Request, class_id: str):
     get_class_or_404(class_id)
-    
-    # 2. テンプレートを表示し、URLから来た student_id をそのままJSに渡す
-    return templates.TemplateResponse(
-        request=request,
-        name="student.html",
-        context={"class_id": class_id, "student_id": student_id}
-    )
+    return templates.TemplateResponse("student.html", {"request": request, "class_id": class_id})
+
 
 @app.get("/class/{class_id}/professor", response_class=HTMLResponse)
 def professor_page(request: Request, class_id: str):
     get_class_or_404(class_id)
-    return templates.TemplateResponse(
-        request=request,
-        name="professor.html",
-        context={"class_id": class_id}
-    )
+    return templates.TemplateResponse("professor.html", {"request": request, "class_id": class_id})
 
 
 # ==========================================
@@ -525,4 +502,3 @@ def api_professor_view(class_id: str):
 @app.get("/healthz")
 def healthz():
     return JSONResponse({"status": "ok"})
-

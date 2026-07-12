@@ -26,7 +26,10 @@ export async function fetchClass(classId) {
 
 export async function addStudent(classId, displayName) {
   const body = new URLSearchParams({ display_name: displayName });
-  const res = await fetch(`/api/classes/${classId}/students`, { method: "POST", body });
+  const res = await fetch(`/api/classes/${classId}/students`, {
+    method: "POST",
+    body,
+  });
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.detail || "生徒の追加に失敗しました");
@@ -35,13 +38,17 @@ export async function addStudent(classId, displayName) {
 }
 
 export async function deleteStudent(classId, studentId) {
-  const res = await fetch(`/api/classes/${classId}/students/${studentId}`, { method: "DELETE" });
+  const res = await fetch(`/api/classes/${classId}/students/${studentId}`, {
+    method: "DELETE",
+  });
   if (!res.ok) throw new Error("削除に失敗しました");
   return res.json();
 }
 
 export async function deleteModule(classId, moduleId) {
-  const res = await fetch(`/api/classes/${classId}/modules/${moduleId}`, { method: "DELETE" });
+  const res = await fetch(`/api/classes/${classId}/modules/${moduleId}`, {
+    method: "DELETE",
+  });
   if (!res.ok) throw new Error("削除に失敗しました");
   return res.json();
 }
@@ -49,7 +56,10 @@ export async function deleteModule(classId, moduleId) {
 export async function uploadPdfModule(classId, file) {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch(`/api/classes/${classId}/modules/from-pdf`, { method: "POST", body: formData });
+  const res = await fetch(`/api/classes/${classId}/modules/from-pdf`, {
+    method: "POST",
+    body: formData,
+  });
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.detail || "章の生成に失敗しました");
@@ -58,13 +68,20 @@ export async function uploadPdfModule(classId, file) {
 }
 
 export async function fetchEnrollment(classId, studentId) {
-  const res = await fetch(`/api/classes/${classId}/students/${studentId}/enrollment`);
+  const res = await fetch(
+    `/api/classes/${classId}/students/${studentId}/enrollment`,
+  );
   if (!res.ok) throw new Error("履修データの取得に失敗しました");
   return res.json();
 }
 
 export async function sendChat(classId, studentId, moduleId, message) {
-  const body = new URLSearchParams({ class_id: classId, student_id: studentId, module_id: moduleId, message });
+  const body = new URLSearchParams({
+    class_id: classId,
+    student_id: studentId,
+    module_id: moduleId,
+    message,
+  });
   const res = await fetch("/api/chat", { method: "POST", body });
   if (!res.ok) {
     const err = await res.json();
@@ -118,8 +135,12 @@ export function drawRadar(canvasEl, chartRefHolder, current, target) {
     },
     options: {
       scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 } } },
-      plugins: { legend: { position: "bottom", labels: { font: { family: "Inter", size: 11 } } } },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { font: { family: "Inter", size: 11 } },
+        },
+      },
     },
   });
 }
-
