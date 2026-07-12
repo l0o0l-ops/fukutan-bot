@@ -1,86 +1,70 @@
-const urlParams = new URLSearchParams(window.location.search);
-const classId = urlParams.get('class_id') || 'class_001';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI副担任：フクタン - 口頭試問コクピット</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+        .nav-link:hover { color: var(--text-main); }
+        .hidden { display: none !important; }
+        .module-row { padding: 12px; border-bottom: 1px solid var(--border-ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
+        .module-row.active { background-color: var(--lamp-glow); color: var(--lamp-amber); font-weight: bold;}
+        .status-badge { padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px;}
+        .status-badge.passed { background-color: rgba(16, 185, 129, 0.15); color: #10b981;}
+        .status-badge.progress { background-color: rgba(245, 158, 11, 0.15); color: var(--lamp-amber);}
+        .gauge-track { background: var(--bg-ink); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px; margin-bottom: 12px;}
+        .gauge-fill { background: var(--lamp-amber); height: 100%; transition: width 0.4s;}
+        .gauge-label { display: flex; justify-content: space-between; font-size: 0.85rem;}
+    </style>
+</head>
+<body data-class-id="">
+    <div class="app-wrapper">
+        <header style="display: flex; justify-content: space-between; align-items: baseline;">
+            <h1>FUKUTAN <span class="subtitle">| Student Cockpit</span> <span id="class-name" style="margin-left: 15px; color: var(--lamp-amber);"></span></h1>
+            <a href="/" class="nav-link">🏠 Portal (授業選択に戻る)</a>
+        </header>
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const targetSelector = document.getElementById('target-selector');
-    const contentPanels = document.querySelectorAll('.content-panel');
-    const fileInput = document.getElementById('file-input');
-    const state = {};
+        <div id="student-empty" class="hidden" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            生徒マスタが登録されていません。マスタ管理画面から生徒を追加してください。
+        </div>
 
-    // 教授用データを一括取得してバインドする本番処理
-    async function loadProfessorData() {
-        const res = await fetch(`/api/classes/${classId}/professor-view`);
-        const data = await res.json();
-        
-        // メニューの動的構築
-        let menuHtml = `<li class="target-item active" data-target="panel-overall">📊 クラス全体傾向・章管理</li>`;
-        data.students.forEach(s => {
-            menuHtml += `<li class="target-item" data-target="panel-${s.student_id}">👨‍🎓 ${s.display_name}</li>`;
-        });
-        targetSelector.innerHTML = menuHtml;
+        <main class="main-layout" id="student-body">
+            <section class="chat-section" style="flex: 3;">
+                <div class="section-header">
+                    <h2>Curriculum</h2>
+                    <select id="student-select" style="background: var(--bg-ink); color: var(--text-main); border: 1px solid var(--border-ink); padding: 5px; width: 100%; border-radius: 4px;"></select>
+                </div>
+                <ul class="chat-box" id="module-list" style="padding: 0; list-style: none; gap: 0;"></ul>
+            </section>
 
-        // パネルのイベントリスナー再割り当て
-        document.querySelectorAll('.target-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.target-item').forEach(t => t.classList.remove('active'));
-                contentPanels.forEach(p => p.classList.remove('active'));
-                item.classList.add('active');
-                
-                const targetId = item.getAttribute('data-target');
-                const pnl = document.getElementById(targetId);
-                if(pnl) pnl.classList.add('active');
-            });
-        });
+            <section class="chat-section" style="flex: 5;">
+                <div class="section-header">
+                    <h2>Dialogue Log</h2>
+                    <p id="module-goal"></p>
+                </div>
+                <div class="chat-box" id="chat-window"></div>
+                <form id="chat-form" class="input-area">
+                    <input type="text" id="chat-input" placeholder="自分の言葉で説明してみよう..." autocomplete="off">
+                    <button type="submit">Send</button>
+                </form>
+            </section>
 
-        // 全体平均スコアの算出と描画
-        let sumK=0, sumT=0, sumA=0, count=0;
-        data.students.forEach(s => {
-            Object.values(s.enrollment.modules || {}).forEach(m => {
-                sumK += m.current_status?.knowledge_level || 1;
-                sumT += m.current_status?.thinking_level || 1;
-                sumA += m.current_status?.application_level || 1;
-                count++;
-            });
-        });
-        const avgK = count > 0 ? sumK/count : 1;
-        const avgT = count > 0 ? sumT/count : 1;
-        const avgA = count > 0 ? sumA/count : 1;
-        
-        drawRadar("overall-radar", "overallRadar", state, [avgK, avgT, avgA], [4, 4, 3]);
-    }
+            <section class="status-section" style="flex: 4; padding: 20px;">
+                <div id="status-badge" class="status-badge"></div>
+                <div id="gauge-list"></div>
+                <div class="chart-container" style="height: 220px;">
+                    <canvas id="student-radar"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
 
-    // PDFアップロード本番処理
-    fileInput.addEventListener('change', async (e) => {
-        if(e.target.files.length === 0) return;
-        const formData = new FormData();
-        formData.append('file', e.target.files[0]);
-
-        try {
-            await fetch(`/api/classes/${classId}/modules/from-pdf`, { method: 'POST', body: formData });
-            alert("AIがシラバスモジュールを生成し、Firestoreに追加しました！");
-            location.reload();
-        } catch(err) { alert("解析に失敗しました。"); }
-    });
-
-    await loadProfessorData();
-});
-
-// レーダー描画ロジック (app.jsと共通)
-function drawRadar(canvasId, stateKey, state, current, target) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    if (state[stateKey]) {
-      state[stateKey].data.datasets[0].data = current; state[stateKey].update(); return;
-    }
-    state[stateKey] = new Chart(canvas.getContext("2d"), {
-      type: "radar",
-      data: {
-        labels: ["知識", "思考", "応用"],
-        datasets: [
-          { label: "現在スコア", data: current, borderColor: "#f59e0b", backgroundColor: "rgba(245, 158, 11, 0.25)", borderWidth: 2 },
-          { label: "目標基準", data: target, borderColor: "#2a2d36", backgroundColor: "transparent", borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { display: false } } } }
-    });
-}
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

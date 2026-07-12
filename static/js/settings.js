@@ -17,11 +17,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // クラス追加本番通信
     addClassBtn.addEventListener('click', async () => {
+
         const name = newClassInput.value.trim();
-        if(!name) return;
-        
-        const body = new URLSearchParams({ class_name: name });
-        const response = await fetch('/api/classes', { method: 'POST', body });
+        if (!name) return;
+
+        // 🚀 修正: Formデータとして送信
+        const body = new URLSearchParams();
+        body.append("class_name", name); // main.pyの引数名と一致させる
+
+        const response = await fetch('/api/classes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body
+        });
         const created = await response.json();
 
         const li = document.createElement('li');
