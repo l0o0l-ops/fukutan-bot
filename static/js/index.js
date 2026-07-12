@@ -3,22 +3,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loading = document.getElementById('loading');
 
     try {
-        // 🚀 FastAPI(Firestore)から本物のデータを取得
         const response = await fetch('/api/classes');
         const data = await response.json();
         
         loading.style.display = 'none';
 
         if (data.classes.length === 0) {
-            classGrid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">開講中の授業はありません。Settingsから追加してください。</p>';
+            classGrid.innerHTML = '<p class="loading-text">授業がまだありません。Settingsから追加してください。</p>';
             return;
         }
 
-        // Firestoreのデータを使ってカードを生成
         data.classes.forEach(cls => {
             const card = document.createElement('div');
             card.className = 'class-card';
             
+            // 🚀 ここで cls.name を直接指定
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: var(--text-main); font-family: 'Inter', sans-serif;">${cls.name}</h3>
                 <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">

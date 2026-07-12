@@ -1,90 +1,61 @@
 const urlParams = new URLSearchParams(window.location.search);
-const currentClassId = urlParams.get('class_id') || 'class_001';
+const classId = urlParams.get('class_id') || 'class_001';
 
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // === 1. 左メニューの切り替えロジック ===
-    const targetItems = document.querySelectorAll('.target-item');
-    const contentPanels = document.querySelectorAll('.content-panel');
+document.addEventListener('DOMContentLoaded', async () => {
+    const targetSelector = document.getElementById('target-selector');
+    const panelContainer = document.getElementById('panel-container');
+    const state = {};
 
-    targetItems.forEach(item => {
+    const res = await fetch(`/api/classes/${classId}/professor-view`);
+    const data = await res.json();
+
+    // 1. メニュー生成
+    data.students.forEach(s => {
+        const li = document.createElement('li');
+        li.className = 'target-item';
+        li.dataset.target = `panel-${s.student_id}`;
+        li.textContent = `👨‍🎓 ${s.display_name}`;
+        targetSelector.appendChild(li);
+
+        // 2. コンテンツパネル生成
+        const pnl = document.createElement('div');
+        pnl.id = `panel-${s.student_id}`;
+        pnl.className = 'content-panel';
+        pnl.innerHTML = `
+            <h2>${s.display_name}さんのカルテ</h2>
+            <div style="height: 200px;"><canvas id="radar-${s.student_id}"></canvas></div>
+            <p><strong>成長日報:</strong> ${s.enrollment.overall_report || "データなし"}</p>
+        `;
+        panelContainer.appendChild(pnl);
+    });
+
+    // 3. クリックイベント割り当て
+    document.querySelectorAll('.target-item').forEach(item => {
         item.addEventListener('click', () => {
-            // 選択状態のリセット
-            targetItems.forEach(t => t.classList.remove('active'));
-            contentPanels.forEach(p => p.classList.remove('active'));
-
-            // クリックされたものをアクティブに
+            document.querySelectorAll('.target-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content-panel').forEach(p => p.classList.remove('active'));
             item.classList.add('active');
-            const targetId = item.getAttribute('data-target');
-            document.getElementById(targetId).classList.add('active');
+            document.getElementById(item.dataset.target).classList.add('active');
         });
     });
 
-    // === 2. レーダーチャートの初期描画（モックデータ） ===
-    // ※先ほど提示していただいたChart.jsのラッパー関数を想定
-    const state = {}; 
-
-    // クラス全体の平均チャート
-    drawRadar("overall-radar", "overallRadar", state, [3.2, 2.8, 3.5], [4, 4, 3]);
-    
-    // 生徒ごとの個別チャート
-    drawRadar("student-1-radar", "student1Radar", state, [4, 4, 3], [4, 4, 3]);
-    drawRadar("student-2-radar", "student2Radar", state, [2, 1, 1], [4, 4, 3]);
-
+    // 4. チャート描画
+    drawRadar("overall-radar", "overall", state, [3,3,3], [4,4,3]);
+    data.students.forEach(s => {
+        const stats = s.enrollment.modules ? Object.values(s.enrollment.modules)[0]?.current_status : {knowledge_level:1, thinking_level:1, application_level:1};
+        drawRadar(`radar-${s.student_id}`, s.student_id, state, [stats.knowledge_level, stats.thinking_level, stats.application_level], [4,4,3]);
+    });
 });
 
-// ==========================================
-// レーダーチャート描画関数 (先ほどのものをそのまま流用)
-// ==========================================
-function drawRadar(canvasId, stateKey, state, current, target) {
+function drawRadar(canvasId, key, state, current, target) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
-  
-    if (state[stateKey]) {
-      state[stateKey].data.datasets[0].data = current;
-      state[stateKey].data.datasets[1].data = target;
-      state[stateKey].update();
-      return;
-    }
-  
-    Chart.defaults.font.family = "'Space Grotesk', sans-serif";
-    Chart.defaults.color = '#9ca3af';
-  
-    state[stateKey] = new Chart(canvas.getContext("2d"), {
-      type: "radar",
-      data: {
-        labels: ["知識", "思考", "応用"],
-        datasets: [
-          {
-            label: "現在地 / 現在の平均",
-            data: current,
-            borderColor: "#d98e33",
-            backgroundColor: "rgba(217, 142, 51, 0.25)",
-            borderWidth: 2,
-          },
-          {
-            label: "目標",
-            data: target,
-            borderColor: "#12182b",
-            backgroundColor: "transparent",
-            borderDash: [4, 4],
-            borderWidth: 1.5,
-            pointRadius: 0,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: { duration: 800, easing: 'easeOutQuart' },
-        scales: { 
-            r: { 
-                min: 0, max: 5, ticks: { stepSize: 1, display: false },
-                grid: { color: '#2a2d36' }, angleLines: { color: '#2a2d36' },
-                pointLabels: { font: { size: 12, family: "Inter" }, color: '#f3f4f6' }
-            } 
+    state[key] = new Chart(canvas.getContext("2d"), {
+        type: "radar",
+        data: {
+            labels: ["知識", "思考", "応用"],
+            datasets: [{label: "現在", data: current, borderColor: "#f59e0b"}, {label: "目標", data: target, borderColor: "#2a2d36"}]
         },
-        plugins: { legend: { position: "bottom" } },
-      },
+        options: { responsive: true, maintainAspectRatio: false }
     });
 }

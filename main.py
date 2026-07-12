@@ -53,7 +53,7 @@ async def get_settings(request: Request):
 # ==========================================
 # 3. コア API エンドポイント (本番接続)
 # ==========================================
-
+# main.py の api_get_classes を修正
 @app.get("/api/classes")
 async def api_get_classes():
     docs = db.collection("classes").stream()
@@ -62,7 +62,7 @@ async def api_get_classes():
         d = doc.to_dict()
         classes.append({
             "id": doc.id,
-            "class_name": d.get("name", "無題の授業"),
+            "name": d.get("name", "無題の授業"),  # 👈 "name" に統一
             "studentCount": len(d.get("roster", [])),
             "currentModule": d.get("modules", [{}])[0].get("title", "未設定") if d.get("modules") else "未設定"
         })
