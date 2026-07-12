@@ -51,7 +51,7 @@ ai_client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 app = FastAPI(title="Intelligent Syllabus")
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates"))
 
 DEFAULT_CRITERIA = {"knowledge_level": 4, "thinking_level": 4, "application_level": 3}
 
