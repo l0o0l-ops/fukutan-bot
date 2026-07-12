@@ -63,6 +63,7 @@ async function enterCockpit(studentId, displayName) {
 
   document.getElementById("login-screen").classList.add("hidden");
   document.getElementById("cockpit-screen").classList.remove("hidden");
+  document.getElementById("cockpit-screen").classList.add("active");  
   document.getElementById("student-display-name").textContent = displayName;
 
   renderModuleList();
