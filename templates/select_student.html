@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ja">
+<body>
+  <h1>どの生徒として入りますか？</h1>
+  <ul id="student-list">
+    {% for s in roster %}
+      <li>
+        <a href="/class/{{ class_id }}/student/{{ s.student_id }}">
+          {{ s.display_name }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

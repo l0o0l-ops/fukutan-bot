@@ -273,15 +273,27 @@ def class_select_page(request: Request, class_id: str):
     )
 
 
-@app.get("/class/{class_id}/student", response_class=HTMLResponse)
-def student_page(request: Request, class_id: str):
+@app.get("/class/{class_id}/select-student", response_class=HTMLResponse)
+def select_student_page(request: Request, class_id: str):
+    # クラス情報を取得してテンプレートに渡す
+    class_data = get_class_or_404(class_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="select_student.html",
+        context={"class_id": class_id, "roster": class_data.get("roster", [])}
+    )
+
+@app.get("/class/{class_id}/student/{student_id}", response_class=HTMLResponse)
+def student_page(request: Request, class_id: str, student_id: str):
+    # 1. クラスが存在するか確認
     get_class_or_404(class_id)
+    
+    # 2. テンプレートを表示し、URLから来た student_id をそのままJSに渡す
     return templates.TemplateResponse(
         request=request,
         name="student.html",
-        context={"class_id": class_id}
+        context={"class_id": class_id, "student_id": student_id}
     )
-
 
 @app.get("/class/{class_id}/professor", response_class=HTMLResponse)
 def professor_page(request: Request, class_id: str):

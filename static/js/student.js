@@ -4,71 +4,81 @@ const classId = document.body.dataset.classId;
 const radarRef = {};
 const state = { classData: null, studentId: null, moduleId: null, enrollment: null };
 
+// DOM要素をキャッシュ（ページ読み込み後に確実に取得）
+const loginScreen = document.getElementById("login-screen");
+const cockpitScreen = document.getElementById("cockpit-screen");
+const studentList = document.getElementById("login-student-list");
+
 init();
 
 async function init() {
   state.classData = await fetchClass(classId);
   document.getElementById("class-name").textContent = state.classData.class_name;
-
-  const roster = state.classData.roster || [];
-  if (roster.length === 0) {
-    showLoginScreen(roster);
-    return;
-  }
-  showLoginScreen(roster);
+  showLoginScreen(state.classData.roster || []);
 }
 
-// ---------- ログイン画面（「あなたは誰ですか？」） ----------
+// ---------- ログイン画面の表示 ----------
 function showLoginScreen(roster) {
-  document.getElementById("login-screen").classList.remove("hidden");
-  document.getElementById("cockpit-screen").classList.add("hidden");
+  loginScreen.classList.add("active"); // クラスを明示的に付与
+  loginScreen.classList.remove("hidden");
+  cockpitScreen.classList.add("hidden");
 
-  const list = document.getElementById("login-student-list");
   if (roster.length === 0) {
-    list.innerHTML = `<li class="empty-row">このクラスにはまだ生徒が登録されていません。先生に追加を依頼してください。</li>`;
+    studentList.innerHTML = `<li class="empty-row">生徒が登録されていません。</li>`;
     return;
   }
-  list.innerHTML = roster
+  
+  studentList.innerHTML = roster
     .map((s) => `<li class="login-row" data-id="${s.student_id}">${s.display_name}</li>`)
     .join("");
 
-  list.querySelectorAll(".login-row").forEach((row) => {
-    row.addEventListener("click", () => enterCockpit(row.dataset.id, row.textContent));
-  });
+  // イベント委譲でクリックを確実に拾う
+  studentList.addEventListener("click", (e) => {
+    const row = e.target.closest(".login-row");
+    if (row) enterCockpit(row.dataset.id, row.textContent);
+  }, { once: true }); // 1回クリックされたら外す
 }
 
+// ---------- コクピットへの遷移 ----------
 async function enterCockpit(studentId, displayName) {
-
-
   state.studentId = studentId;
   state.enrollment = await fetchEnrollment(classId, studentId);
 
   const modules = state.classData.modules || [];
   state.moduleId = modules.length > 0 ? modules[0].module_id : null;
 
-  document.getElementById("login-screen").classList.add("hidden");
-  document.getElementById("cockpit-screen").classList.remove("hidden");
+  loginScreen.classList.remove("active", "hidden");
+  loginScreen.classList.add("hidden");
+  cockpitScreen.classList.remove("hidden");
+  
   document.getElementById("student-display-name").textContent = displayName;
+  renderAll();
+}
 
+// ---------- 共通描画管理 ----------
+function renderAll() {
   renderModuleList();
   renderChat();
   renderStatus();
 }
 
-document.getElementById("switch-student-btn").addEventListener("click", () => {
-  state.studentId = null;
-  showLoginScreen(state.classData.roster || []);
+// ---------- 章リスト（イベント委譲で最適化） ----------
+const moduleListContainer = document.getElementById("module-list");
+moduleListContainer.addEventListener("click", (e) => {
+  const row = e.target.closest(".module-row");
+  if (!row) return;
+  state.moduleId = row.dataset.moduleId;
+  renderAll();
 });
 
-// ---------- 章リスト ----------
 function renderModuleList() {
-  const list = document.getElementById("module-list");
-  const modules = state.classData.modules || [];
+  const modules = state.classData.modules || []; // 宣言はここだけ
   if (modules.length === 0) {
-    list.innerHTML = `<li class="empty-row">章がまだありません。先生に追加を依頼してください。</li>`;
+    moduleListContainer.innerHTML = `<li class="empty-row">章がありません。</li>`;
     return;
   }
-  list.innerHTML = modules
+  
+  moduleListContainer.innerHTML = modules
     .map((m, idx) => {
       const progress = (state.enrollment?.modules || {})[m.module_id];
       const passed = progress?.is_passed;
@@ -80,15 +90,6 @@ function renderModuleList() {
       </li>`;
     })
     .join("");
-
-  list.querySelectorAll(".module-row").forEach((row) => {
-    row.addEventListener("click", () => {
-      state.moduleId = row.dataset.moduleId;
-      renderModuleList();
-      renderChat();
-      renderStatus();
-    });
-  });
 }
 
 function currentModuleInfo() {
@@ -118,6 +119,7 @@ function renderChat() {
   input.placeholder = progress.is_passed ? "この章は合格済みです" : "自分の言葉で説明してみよう...";
 }
 
+// ---------- 能力査定 ----------
 function renderStatus() {
   const modInfo = currentModuleInfo();
   const progress = (state.enrollment?.modules || {})[state.moduleId] || {};
@@ -140,18 +142,13 @@ function renderStatus() {
     ["応用 Application", status.application_level, criteria.application_level],
   ];
   gaugeList.innerHTML = axes
-    .map(
-      ([label, val, target]) => `
+    .map(([label, val, target]) => `
     <div>
       <div class="gauge-label"><span>${label}</span><span>Lv.${val} / ${target}</span></div>
       <div class="gauge-track"><div class="gauge-fill" style="width:${Math.min((val / 5) * 100, 100)}%"></div></div>
-    </div>`
-    )
-    .join("");
+    </div>`).join("");
 
-  drawRadar(
-    document.getElementById("student-radar"),
-    radarRef,
+  drawRadar(document.getElementById("student-radar"), radarRef,
     [status.knowledge_level, status.thinking_level, status.application_level],
     [criteria.knowledge_level, criteria.thinking_level, criteria.application_level]
   );
@@ -176,14 +173,8 @@ document.getElementById("chat-form").addEventListener("submit", async (e) => {
     modules[state.moduleId].chat_history = result.chat_history;
     modules[state.moduleId].current_status = result.current_status;
     modules[state.moduleId].is_passed = result.is_passed;
-    modules[state.moduleId].growth_report = result.growth_report;
-    modules[state.moduleId].action_plan = result.action_plan;
-    renderChat();
-    renderStatus();
-    if (result.is_passed_now) {
-      document.getElementById("status-badge").textContent = "🎉 合格！おめでとうございます。次の章に進めます。";
-      celebrate();
-    }
+    renderAll();
+    if (result.is_passed_now) celebrate();
   } catch (err) {
     showToast(toast, err.message);
   } finally {
@@ -200,17 +191,12 @@ function showToast(toast, message) {
 function celebrate() {
   const layer = document.getElementById("confetti-layer");
   layer.innerHTML = "";
-  const colors = ["#d98e33", "#f3d9ab", "#4f9d69", "#12182b"];
   for (let i = 0; i < 24; i++) {
     const piece = document.createElement("span");
     piece.className = "confetti-piece";
     piece.style.left = `${Math.random() * 100}%`;
-    piece.style.background = colors[i % colors.length];
     piece.style.animationDelay = `${Math.random() * 0.4}s`;
     layer.appendChild(piece);
   }
   setTimeout(() => (layer.innerHTML = ""), 2200);
 }
-
-
-
