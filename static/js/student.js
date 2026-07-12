@@ -61,6 +61,15 @@ async function enterCockpit(studentId, displayName) {
   const modules = state.classData.modules || [];
   state.moduleId = modules.length > 0 ? modules[0].module_id : null;
 
+  if (state.moduleId) {
+    const enrollRef = db.collection("enrollments").document(`${classId}_${studentId}`);
+    await enrollRef.update({
+      [`modules.${state.moduleId}.chat_history`]: []
+    });
+    // UIを再取得して反映
+    state.enrollment = await fetchEnrollment(classId, studentId);
+  }
+
   document.getElementById("login-screen").classList.add("hidden");
   document.getElementById("cockpit-screen").classList.remove("hidden");
   document.getElementById("cockpit-screen").classList.add("active");  
