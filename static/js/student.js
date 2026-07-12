@@ -38,6 +38,15 @@ function showLoginScreen(roster) {
 }
 
 async function enterCockpit(studentId, displayName) {
+  console.log("DEBUG: enterCockpitが呼ばれました", studentId, displayName);
+  
+  state.studentId = studentId;
+  state.enrollment = await fetchEnrollment(classId, studentId);
+  console.log("DEBUG: enrollment取得完了", state.enrollment); // ここにデータが来ているか？
+
+  const modules = state.classData.modules || [];
+  console.log("DEBUG: modulesデータ", modules); // ここは空ではないか？
+  
   state.studentId = studentId;
   state.enrollment = await fetchEnrollment(classId, studentId);
 
