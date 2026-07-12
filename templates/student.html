@@ -1,52 +1,86 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI副担任：フクタン</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <div class="app-wrapper">
-        <header>
-            <h1>FUKUTAN <span class="subtitle">| AI Oral Examination</span></h1>
-        </header>
+const urlParams = new URLSearchParams(window.location.search);
+const classId = urlParams.get('class_id') || 'class_001';
 
-        <main class="main-layout">
-            <section class="chat-section">
-                <div class="section-header">
-                    <h2>Dialogue Log</h2>
-                    <p>第1章：コンテナ技術の基礎概念</p>
-                </div>
-                <div class="chat-box" id="chat-box">
-                    <div class="chat-bubble assistant">
-                        こんにちは。フクタンです。今日の講義内容について、君自身の言葉で説明してもらえるかな？
-                    </div>
-                </div>
-                <div class="input-area">
-                    <input type="text" id="chat-input" placeholder="論理を記述してください..." autocomplete="off">
-                    <button id="send-btn">Send</button>
-                </div>
-            </section>
+document.addEventListener('DOMContentLoaded', async () => {
+    const targetSelector = document.getElementById('target-selector');
+    const contentPanels = document.querySelectorAll('.content-panel');
+    const fileInput = document.getElementById('file-input');
+    const state = {};
 
-            <section class="status-section">
-                <div class="section-header">
-                    <h2>Real-time Assessment</h2>
-                    <p>能力査定ステータス</p>
-                </div>
-                <div class="chart-container">
-                    <canvas id="radarChart"></canvas>
-                </div>
-            </section>
-        </main>
-    </div>
+    // 教授用データを一括取得してバインドする本番処理
+    async function loadProfessorData() {
+        const res = await fetch(`/api/classes/${classId}/professor-view`);
+        const data = await res.json();
+        
+        // メニューの動的構築
+        let menuHtml = `<li class="target-item active" data-target="panel-overall">📊 クラス全体傾向・章管理</li>`;
+        data.students.forEach(s => {
+            menuHtml += `<li class="target-item" data-target="panel-${s.student_id}">👨‍🎓 ${s.display_name}</li>`;
+        });
+        targetSelector.innerHTML = menuHtml;
 
-    <script src="/static/js/app.js"></script>
-</body>
-</html>
+        // パネルのイベントリスナー再割り当て
+        document.querySelectorAll('.target-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.target-item').forEach(t => t.classList.remove('active'));
+                contentPanels.forEach(p => p.classList.remove('active'));
+                item.classList.add('active');
+                
+                const targetId = item.getAttribute('data-target');
+                const pnl = document.getElementById(targetId);
+                if(pnl) pnl.classList.add('active');
+            });
+        });
+
+        // 全体平均スコアの算出と描画
+        let sumK=0, sumT=0, sumA=0, count=0;
+        data.students.forEach(s => {
+            Object.values(s.enrollment.modules || {}).forEach(m => {
+                sumK += m.current_status?.knowledge_level || 1;
+                sumT += m.current_status?.thinking_level || 1;
+                sumA += m.current_status?.application_level || 1;
+                count++;
+            });
+        });
+        const avgK = count > 0 ? sumK/count : 1;
+        const avgT = count > 0 ? sumT/count : 1;
+        const avgA = count > 0 ? sumA/count : 1;
+        
+        drawRadar("overall-radar", "overallRadar", state, [avgK, avgT, avgA], [4, 4, 3]);
+    }
+
+    // PDFアップロード本番処理
+    fileInput.addEventListener('change', async (e) => {
+        if(e.target.files.length === 0) return;
+        const formData = new FormData();
+        formData.append('file', e.target.files[0]);
+
+        try {
+            await fetch(`/api/classes/${classId}/modules/from-pdf`, { method: 'POST', body: formData });
+            alert("AIがシラバスモジュールを生成し、Firestoreに追加しました！");
+            location.reload();
+        } catch(err) { alert("解析に失敗しました。"); }
+    });
+
+    await loadProfessorData();
+});
+
+// レーダー描画ロジック (app.jsと共通)
+function drawRadar(canvasId, stateKey, state, current, target) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    if (state[stateKey]) {
+      state[stateKey].data.datasets[0].data = current; state[stateKey].update(); return;
+    }
+    state[stateKey] = new Chart(canvas.getContext("2d"), {
+      type: "radar",
+      data: {
+        labels: ["知識", "思考", "応用"],
+        datasets: [
+          { label: "現在スコア", data: current, borderColor: "#f59e0b", backgroundColor: "rgba(245, 158, 11, 0.25)", borderWidth: 2 },
+          { label: "目標基準", data: target, borderColor: "#2a2d36", backgroundColor: "transparent", borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { display: false } } } }
+    });
+}

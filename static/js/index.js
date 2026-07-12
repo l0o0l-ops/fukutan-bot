@@ -3,29 +3,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loading = document.getElementById('loading');
 
     try {
-        // 本来は fetch('/api/classes') などでバックエンドから取得します。
-        // ここではAPIが繋がるまでのモックデータとして処理を組みます。
-        const mockClasses = [
-            { id: "class_001", name: "DevOps基礎講座2026", studentCount: 42, currentModule: "第3章" },
-            { id: "class_002", name: "クラウドアーキテクチャ概論", studentCount: 18, currentModule: "第1章" }
-        ];
-
-        // API通信の遅延をシミュレート（デモ時のハッタリ用）
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        // ローディング非表示
+        // 🚀 FastAPI(Firestore)から本物のデータを取得
+        const response = await fetch('/api/classes');
+        const data = await response.json();
+        
         loading.style.display = 'none';
 
-        // 授業カードの生成
-        mockClasses.forEach(cls => {
+        if (data.classes.length === 0) {
+            classGrid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">開講中の授業はありません。Settingsから追加してください。</p>';
+            return;
+        }
+
+        // Firestoreのデータを使ってカードを生成
+        data.classes.forEach(cls => {
             const card = document.createElement('div');
             card.className = 'class-card';
             
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: var(--text-main); font-family: 'Inter', sans-serif;">${cls.name}</h3>
                 <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-                    現在の登録生徒: ${cls.studentCount}名<br>
-                    進行中モジュール: ${cls.currentModule}
+                    現在の登録生徒: ${cls.studentCount || 0}名<br>
+                    進行中モジュール: ${cls.currentModule || '未設定'}
                 </p>
                 
                 <div class="demo-actions">
