@@ -11,23 +11,13 @@
 <body data-class-id="{{ class_id }}">
   <header class="app-header">
     <a href="/class/{{ class_id }}" class="back-link">← 入口に戻る</a>
-    <h1 id="class-name">読み込み中...</h1>
+
     <span class="role-chip">👤 学生</span>
   </header>
 
-  <!-- ============ ログイン画面 ============ -->
-  <section id="login-screen" class="tab-panel active login-panel">
-    <div class="panel entry-card">
-      <span class="eyebrow">Who are you?</span>
-      <h2>あなたの名前を選んでください</h2>
-      <ul id="login-student-list" class="login-list">
-        <li class="empty-row">読み込み中...</li>
-      </ul>
-    </div>
-  </section>
 
   <!-- ============ コクピット画面 ============ -->
-  <section id="cockpit-screen" class="tab-panel hidden">
+  <section id="cockpit-screen" >
     <div class="student-toolbar">
       <span id="student-display-name" class="current-user-name"></span>
       <button id="switch-student-btn" class="btn-link">別の生徒に切り替える</button>

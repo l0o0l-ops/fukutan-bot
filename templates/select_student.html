@@ -1,15 +1,37 @@
 <!DOCTYPE html>
 <html lang="ja">
-<body>
-  <h1>どの生徒として入りますか？</h1>
-  <ul id="student-list">
-    {% for s in roster %}
-      <li>
-        <a href="/class/{{ class_id }}/student/{{ s.student_id }}">
-          {{ s.display_name }}
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>学生コクピット｜インテリジェント・シラバス</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body data-class-id="{{ class_id }}">
+
+    <header class="app-header">
+    <a href="/class/{{ class_id }}" class="back-link">← 入口に戻る</a>
+    <h1 id="class-name">読み込み中...</h1>
+    <span class="role-chip">👤 学生</span>
+    </header>
+
+    <!-- ============ ログイン画面 ============ -->
+    <section id="login-screen" class="tab-panel active login-panel">
+        <div class="panel entry-card">
+        <span class="eyebrow">Who are you?</span>
+        <h2>あなたの名前を選んでください</h2>
+        <ul id="student-list" class="login-list">
+            {% for s in roster %}
+            <li>
+                <a href="/class/{{ class_id }}/student/{{ s.student_id }}">
+                {{ s.display_name }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        </div>
+    </section>
+
 </body>
 </html>
