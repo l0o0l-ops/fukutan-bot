@@ -1,70 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI副担任：フクタン - 口頭試問コクピット</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-        .nav-link:hover { color: var(--text-main); }
-        .hidden { display: none !important; }
-        .module-row { padding: 12px; border-bottom: 1px solid var(--border-ink); cursor: pointer; display: flex; justify-content: space-between; align-items: center;}
-        .module-row.active { background-color: var(--lamp-glow); color: var(--lamp-amber); font-weight: bold;}
-        .status-badge { padding: 10px; border-radius: 6px; font-weight: bold; margin-bottom: 15px;}
-        .status-badge.passed { background-color: rgba(16, 185, 129, 0.15); color: #10b981;}
-        .status-badge.progress { background-color: rgba(245, 158, 11, 0.15); color: var(--lamp-amber);}
-        .gauge-track { background: var(--bg-ink); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 5px; margin-bottom: 12px;}
-        .gauge-fill { background: var(--lamp-amber); height: 100%; transition: width 0.4s;}
-        .gauge-label { display: flex; justify-content: space-between; font-size: 0.85rem;}
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>学生コクピット｜インテリジェント・シラバス</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body data-class-id="">
-    <div class="app-wrapper">
-        <header style="display: flex; justify-content: space-between; align-items: baseline;">
-            <h1>FUKUTAN <span class="subtitle">| Student Cockpit</span> <span id="class-name" style="margin-left: 15px; color: var(--lamp-amber);"></span></h1>
-            <a href="/" class="nav-link">🏠 Portal (授業選択に戻る)</a>
-        </header>
+<body data-class-id="{{ class_id }}">
+  <header class="app-header">
+    <a href="/class/{{ class_id }}" class="back-link">← 入口に戻る</a>
+    <h1 id="class-name">読み込み中...</h1>
+    <span class="role-chip">👤 学生</span>
+  </header>
 
-        <div id="student-empty" class="hidden" style="text-align: center; padding: 40px; color: var(--text-muted);">
-            生徒マスタが登録されていません。マスタ管理画面から生徒を追加してください。
-        </div>
+  <!-- ============ ログイン画面 ============ -->
+  <section id="login-screen" class="tab-panel active login-panel">
+    <div class="panel entry-card">
+      <span class="eyebrow">Who are you?</span>
+      <h2>あなたの名前を選んでください</h2>
+      <ul id="login-student-list" class="login-list">
+        <li class="empty-row">読み込み中...</li>
+      </ul>
+    </div>
+  </section>
 
-        <main class="main-layout" id="student-body">
-            <section class="chat-section" style="flex: 3;">
-                <div class="section-header">
-                    <h2>Curriculum</h2>
-                    <select id="student-select" style="background: var(--bg-ink); color: var(--text-main); border: 1px solid var(--border-ink); padding: 5px; width: 100%; border-radius: 4px;"></select>
-                </div>
-                <ul class="chat-box" id="module-list" style="padding: 0; list-style: none; gap: 0;"></ul>
-            </section>
-
-            <section class="chat-section" style="flex: 5;">
-                <div class="section-header">
-                    <h2>Dialogue Log</h2>
-                    <p id="module-goal"></p>
-                </div>
-                <div class="chat-box" id="chat-window"></div>
-                <form id="chat-form" class="input-area">
-                    <input type="text" id="chat-input" placeholder="自分の言葉で説明してみよう..." autocomplete="off">
-                    <button type="submit">Send</button>
-                </form>
-            </section>
-
-            <section class="status-section" style="flex: 4; padding: 20px;">
-                <div id="status-badge" class="status-badge"></div>
-                <div id="gauge-list"></div>
-                <div class="chart-container" style="height: 220px;">
-                    <canvas id="student-radar"></canvas>
-                </div>
-            </section>
-        </main>
+  <!-- ============ コクピット画面 ============ -->
+  <section id="cockpit-screen" class="tab-panel hidden">
+    <div class="student-toolbar">
+      <span id="student-display-name" class="current-user-name"></span>
+      <button id="switch-student-btn" class="btn-link">別の生徒に切り替える</button>
     </div>
 
-    <script src="/static/js/app.js"></script>
+    <div class="cockpit-grid">
+      <div class="panel col-modules">
+        <div class="panel-head"><h2>講義章リスト</h2><span class="eyebrow">Syllabus</span></div>
+        <ul id="module-list" class="module-list"></ul>
+        <div id="status-badge" class="status-badge"></div>
+      </div>
+
+      <div class="panel col-chat">
+        <div class="panel-head">
+          <h2>対話による口頭試問</h2>
+          <span class="eyebrow" id="module-goal"></span>
+        </div>
+        <div id="chat-window" class="chat-window"></div>
+        <form id="chat-form" class="chat-form">
+          <input type="text" id="chat-input" placeholder="自分の言葉で説明してみよう..." autocomplete="off" />
+          <button type="submit" class="btn btn-primary">送信</button>
+        </form>
+      </div>
+
+      <div class="panel col-status">
+        <div class="panel-head"><h2>リアルタイム能力査定</h2><span class="eyebrow">Assessment</span></div>
+        <div class="gauge-list" id="gauge-list"></div>
+        <canvas id="student-radar" width="260" height="260"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+  <div id="confetti-layer" class="confetti-layer"></div>
+
+  <script type="module" src="/static/js/student.js"></script>
 </body>
 </html>
+

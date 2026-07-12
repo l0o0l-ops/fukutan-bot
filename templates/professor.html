@@ -1,35 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教授用ダッシュボード</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>教授用ダッシュボード｜インテリジェント・シラバス</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body>
-    <div class="app-wrapper">
-        <header style="display: flex; justify-content: space-between; align-items: baseline;">
-            <h1>FUKUTAN <span class="subtitle">| Professor Dashboard</span></h1>
-            <a href="/" class="nav-link">🏠 Portalに戻る</a>
-        </header>
+<body data-class-id="{{ class_id }}">
+  <header class="app-header">
+    <a href="/class/{{ class_id }}" class="back-link">← 入口に戻る</a>
+    <h1 id="class-name">読み込み中...</h1>
+    <span class="role-chip role-chip-professor">👨‍🏫 先生</span>
+  </header>
 
-        <main class="main-layout">
-            <section class="chat-section" style="flex: 3;">
-                <div class="section-header"><h2>View Target</h2></div>
-                <ul class="target-list" id="target-selector">
-                    <li class="target-item active" data-target="panel-overall">📊 クラス全体傾向・章管理</li>
-                    </ul>
-            </section>
+  <section class="tab-panel active">
+    <div class="cockpit-grid">
+      <!-- 左: 名簿 + 管理 -->
+      <div class="panel col-modules">
+        <div class="panel-head"><h2>受講生名簿</h2><span class="eyebrow">Roster</span></div>
 
-            <section class="status-section" style="flex: 7; padding: 20px;" id="panel-container">
-                <div id="panel-overall" class="content-panel active">
-                    <h2>クラス全体平均</h2>
-                    <div style="height: 200px;"><canvas id="overall-radar"></canvas></div>
-                </div>
-                </section>
-        </main>
+        <form id="add-student-form" class="inline-form-vertical">
+          <input type="text" id="new-student-name" placeholder="生徒の名前" required />
+          <button type="submit" class="btn btn-secondary">＋ 生徒を追加</button>
+        </form>
+
+        <ul id="professor-student-list" class="module-list"></ul>
+
+        <div class="divider"></div>
+
+        <div class="panel-head"><h2>章の管理</h2><span class="eyebrow">Modules</span></div>
+        <ul id="module-manage-list" class="module-list"></ul>
+
+        <form id="pdf-upload-form" class="inline-form-vertical">
+          <input type="file" id="pdf-input" accept="application/pdf" required />
+          <button type="submit" class="btn btn-secondary" id="pdf-submit-btn">PDFからAIに章を設計させる</button>
+        </form>
+        <p id="pdf-status" class="form-error"></p>
+      </div>
+
+      <!-- 中央: カルテ対象選択 + グラフ -->
+      <div class="panel col-chat">
+        <div class="panel-head">
+          <h2>講義・カルテ対象</h2>
+          <span class="eyebrow">Report Target</span>
+        </div>
+        <select id="professor-module-select" class="full-select"></select>
+        <div class="scores-line" id="scores-line"></div>
+        <canvas id="professor-radar" width="280" height="280"></canvas>
+      </div>
+
+      <!-- 右: AIカルテ -->
+      <div class="panel col-status">
+        <div class="panel-head"><h2>AI副担任の臨床カルテ</h2><span class="eyebrow">Clinical Notes</span></div>
+        <p id="report-student-name" class="current-user-name"></p>
+        <label class="field-label">引き継ぎ成長日報</label>
+        <textarea id="growth-report" readonly rows="6"></textarea>
+        <label class="field-label">次ステップ学習処方箋</label>
+        <textarea id="action-plan" readonly rows="4"></textarea>
+      </div>
     </div>
-    <script src="/static/js/professor.js"></script>
+  </section>
+
+  <script type="module" src="/static/js/professor.js"></script>
 </body>
 </html>
+

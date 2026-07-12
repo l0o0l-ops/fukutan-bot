@@ -1,61 +1,88 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI副担任：フクタン - 授業ポータル</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .portal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding-bottom: 15px; border-bottom: 1px solid var(--border-ink); margin-bottom: 30px;
-        }
-        .nav-link { color: var(--text-muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
-        .nav-link:hover { color: var(--text-main); }
-        
-        /* 授業カードのグリッド */
-        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .class-card {
-            background-color: var(--panel-ink); border: 1px solid var(--border-ink);
-            border-radius: 12px; padding: 24px; transition: transform 0.2s, border-color 0.2s;
-        }
-        .class-card:hover { border-color: var(--lamp-amber); transform: translateY(-2px); }
-        
-        /* デモ用ボタン */
-        .demo-actions { margin-top: 20px; display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid var(--border-ink); }
-        .btn {
-            flex: 1; padding: 10px; border-radius: 6px; text-align: center; text-decoration: none;
-            font-size: 0.85rem; font-weight: bold; font-family: 'Space Grotesk', sans-serif; transition: opacity 0.2s;
-        }
-        .btn-student { background-color: #272a35; color: var(--text-main); border: 1px solid var(--border-ink); }
-        .btn-student:hover { background-color: #3b3e4a; }
-        .btn-prof { background-color: var(--lamp-glow); color: var(--lamp-amber); border: 1px solid var(--lamp-amber); }
-        .btn-prof:hover { background-color: rgba(245, 158, 11, 0.25); }
-
-        .loading-text { text-align: center; color: var(--text-muted); padding: 40px; font-family: 'Space Grotesk', sans-serif; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>インテリジェント・シラバス</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
-<body>
-    <div class="app-wrapper" style="max-width: 900px; height: auto; overflow: visible;">
-        <header class="portal-header">
-            <div>
-                <h1 style="border:none; padding:0; margin:0;">FUKUTAN <span class="subtitle">| Portal</span></h1>
-            </div>
-            <a href="/settings" class="nav-link">⚙️ System Settings</a>
-        </header>
+<body class="lobby">
+  <div class="lobby-shell">
+    <header class="lobby-header">
+      <div class="brand">
+        <span class="brand-mark">Σ</span>
+        <div>
+          <h1>インテリジェント・シラバス</h1>
+          <p class="tagline">シラバスを配置するだけで、あなた専属の「ソクラテス」が誕生する</p>
+        </div>
+      </div>
+    </header>
 
-        <main>
-            <h2 style="font-family: 'Inter', sans-serif; font-size: 1.1rem; margin-bottom: 20px;">開講中の授業一覧</h2>
-            
-            <div id="loading" class="loading-text">🔄 授業データを取得中...</div>
-            
-            <div class="class-grid" id="class-grid"></div>
-        </main>
-    </div>
+    <main class="lobby-main">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>担当している授業</h2>
+          <span class="eyebrow">Class Roster</span>
+        </div>
+        <ul id="class-list" class="class-list">
+          <li class="empty-row">読み込み中...</li>
+        </ul>
+      </section>
 
-    <script src="/static/js/index.js"></script>
+      <section class="panel panel-create">
+        <div class="panel-head">
+          <h2>新しい授業を開く</h2>
+          <span class="eyebrow">New Class</span>
+        </div>
+        <form id="create-class-form" class="inline-form">
+          <input type="text" id="new-class-name" placeholder="例：応用化学 特講" required />
+          <button type="submit" class="btn btn-primary">作成する</button>
+        </form>
+        <p id="create-error" class="form-error"></p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { fetchClasses, createClass } from "/static/js/api.js";
+
+    async function renderClassList() {
+      const list = document.getElementById("class-list");
+      const classes = await fetchClasses();
+      if (classes.length === 0) {
+        list.innerHTML = `<li class="empty-row">まだ授業がありません。右のフォームから作成してください。</li>`;
+        return;
+      }
+      list.innerHTML = classes
+        .map(
+          (c) => `
+        <li class="class-row">
+          <a href="/class/${c.class_id}">
+            <span class="class-name">${c.class_name}</span>
+            <span class="class-arrow">→</span>
+          </a>
+        </li>`
+        )
+        .join("");
+    }
+
+    document.getElementById("create-class-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById("new-class-name");
+      const errorEl = document.getElementById("create-error");
+      errorEl.textContent = "";
+      try {
+        const { class_id } = await createClass(nameInput.value);
+        window.location.href = `/class/${class_id}`;
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+
+    renderClassList();
+  </script>
 </body>
 </html>
+

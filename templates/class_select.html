@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>インテリジェント・シラバス</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body class="lobby" data-class-id="{{ class_id }}">
+  <div class="lobby-shell narrow">
+    <a href="/" class="back-link back-link-dark">← 授業一覧</a>
+
+    <div class="entry-card">
+      <span class="eyebrow">Enter as</span>
+      <h1 id="entry-class-name">読み込み中...</h1>
+      <p class="entry-sub">どちらの立場でこの授業に入りますか？</p>
+
+      <div class="entry-choices">
+        <a href="/class/{{ class_id }}/student" class="entry-choice">
+          <span class="entry-icon">👤</span>
+          <span class="entry-label">学生として入る</span>
+          <span class="entry-desc">AI副担任と対話し、理解度を測る</span>
+        </a>
+        <a href="/class/{{ class_id }}/professor" class="entry-choice">
+          <span class="entry-icon">👨‍🏫</span>
+          <span class="entry-label">先生として入る</span>
+          <span class="entry-desc">生徒の進捗管理・シラバス設計</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { fetchClass } from "/static/js/api.js";
+    const classId = document.body.dataset.classId;
+    fetchClass(classId).then((data) => {
+      document.getElementById("entry-class-name").textContent = data.class_name;
+    });
+  </script>
+</body>
+</html>
