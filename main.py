@@ -261,27 +261,33 @@ def generate_module_from_pdf(pdf_text: str, module_number: int) -> Optional[dict
 # ==========================================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.get("/class/{class_id}", response_class=HTMLResponse)
 def class_select_page(request: Request, class_id: str):
-    get_class_or_404(class_id)  # 存在確認
-    return templates.TemplateResponse("class_select.html", {"request": request, "class_id": class_id})
-
+    get_class_or_404(class_id) 
+    return templates.TemplateResponse(request=request, 
+        name="class_select.html", 
+        context={"class_id": class_id}
+    )
 
 @app.get("/class/{class_id}/student", response_class=HTMLResponse)
 def student_page(request: Request, class_id: str):
     get_class_or_404(class_id)
-    return templates.TemplateResponse("student.html", {"request": request, "class_id": class_id})
-
+    return templates.TemplateResponse(
+        request=request, 
+        name="student.html", 
+        context={"class_id": class_id}
+    )
 
 @app.get("/class/{class_id}/professor", response_class=HTMLResponse)
 def professor_page(request: Request, class_id: str):
     get_class_or_404(class_id)
-    return templates.TemplateResponse("professor.html", {"request": request, "class_id": class_id})
-
-
+    return templates.TemplateResponse(request=request, 
+        name="professor.html", 
+        context={"class_id": class_id}
+    )
 # ==========================================
 # API: クラス
 # ==========================================
